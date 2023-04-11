@@ -49,8 +49,6 @@ public class Main {
                     System.out.println("The second parameter should be a natural number.\n");
                 }
                 return 0;
-            } finally {
-
             }
         }
 
