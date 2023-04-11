@@ -20,15 +20,14 @@ public class Main {
             int result = run();
             if (result == -1) break;
         }
-        System.out.println("\nGoodbye!");
+        System.out.println("Goodbye!");
     }
 
-    public static int run() {
+    private static int run() {
         Main app = new Main(getInput());
 
         if (app.strings[0].isEmpty()) {
             printInstructions();
-            return -1;
         }
 
         // Terminate app
@@ -45,27 +44,19 @@ public class Main {
                 }
             } catch (NumberFormatException e) {
                 if (i == 0) {
-                    System.out.println("\nThe first parameter should be a natural number or zero.");
+                    System.out.println("The first parameter should be a natural number or zero.\n");
                 } else if (i == 1) {
-                    System.out.println("The second parameter should be a natural number.");
+                    System.out.println("The second parameter should be a natural number.\n");
                 }
                 return 0;
             } finally {
-                System.out.print("\n");
+
             }
         }
 
         app.printProperties();
+        System.out.print("\n");
         return 0;
-    }
-
-    public List<Long> convertStringsToLongs(String[] stringInput) {
-        List<Long> numbers = new ArrayList<>();
-        for (String numberString : stringInput) {
-            long number = Long.parseLong(numberString);
-            numbers.add(number);
-        }
-        return numbers;
     }
 
     private void printProperties() {
@@ -96,8 +87,7 @@ public class Main {
                  palindromic: %b
                       gapful: %b
                         even: %b
-                         odd: %b
-                """,
+                         odd: %b""",
                         strNum,
                         boolMap.get("buzz"),
                         boolMap.get("duck"),
@@ -122,23 +112,22 @@ public class Main {
                 System.out.println("\t\t\t" + myString);
             }
         }
-        if (twoNaturalNumbers) System.out.print("\n");
     }
 
     private static String[] getInput() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter a request: ");
         String input = scanner.nextLine();
+        System.out.print("\n");
         return input.split(" ");
     }
 
-    public static void printWelcome() {
-        System.out.println("Welcome to Amazing Numbers!");
+    private static void printWelcome() {
+        System.out.println("Welcome to Amazing Numbers!\n");
     }
 
-    public static void printInstructions() {
+    private static void printInstructions() {
         System.out.println("""
-                
                 Supported requests:
                 - enter a natural number to know its properties;
                 - enter two natural numbers to obtain the properties of the list:
@@ -193,7 +182,7 @@ public class Main {
         return (n % 2 == 0);
     }
 
-    public String addCommasToLong(long n) {
+    private String addCommasToLong(long n) {
         // Convert the number to a string
         String numberStr = String.valueOf(n);
 
