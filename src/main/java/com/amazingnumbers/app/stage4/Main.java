@@ -27,7 +27,7 @@ public class Main {
         try {
             longNumbers = app.convertStringsToLongs(app.strings);
         } catch (NumberFormatException e) {
-            System.out.println("The first parameter should be a natural number or zero.");
+            System.out.println("\nThe first parameter should be a natural number or zero.");
             return 0;
         } finally {
             System.out.print("\n");
