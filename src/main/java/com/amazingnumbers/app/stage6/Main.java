@@ -20,6 +20,7 @@ public class Main {
 
     private Main(String[] _stringInput) {
         strings = _stringInput;
+        // The size of the numbersInput array will depend on how many additional properties are added
         if (_stringInput.length == 4) {
             numbersInput = new long[_stringInput.length - 2];
         } else if (_stringInput.length == 3) {
@@ -51,6 +52,21 @@ public class Main {
             // User inputs an invalid multiple or single invalid property names (e.g. jojo drake)
             String property1 = app.strings[2].toUpperCase();
             String property2 = app.strings[3].toUpperCase();
+
+            // Check for mutually exclusive properties
+            if (property1.equals(property2)) {
+                printMutuallyExclusiveProperties(property1, property2);
+                return 0;
+            } else if (
+                (property1.equals("ODD") && property2.equals("EVEN") ||
+                        property1.equals("EVEN") && property2.equals("ODD")) ||
+                (property1.equals("SUNNY") && property2.equals("SQUARE") ||
+                        property1.equals("SQUARE") && property2.equals("SUNNY"))
+            ) {
+                printMutuallyExclusiveProperties(property1, property2);
+                return 0;
+            }
+
             boolean property1Found = Arrays.asList(app.properties).contains(property1);
             boolean property2Found = Arrays.asList(app.properties).contains(property2);
 
@@ -206,8 +222,15 @@ public class Main {
     private static void printIncorrectProperties(String propertyInput1, String propertyInput2) {
         System.out.printf("""
                 The property [%s, %s] are wrong.
-                Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY]
-                %n""", propertyInput1, propertyInput2);
+                Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY]\n
+                """, propertyInput1, propertyInput2);
+    }
+
+    private static void printMutuallyExclusiveProperties(String propertyInput1, String propertyInput2) {
+        System.out.printf("""
+                The request contains mutually exclusive properties: [%S, %S]
+                There are no numbers with these properties.\n
+                """, propertyInput1, propertyInput2);
     }
 
     private boolean getBuzz(long n) {
