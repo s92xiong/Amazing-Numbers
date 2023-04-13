@@ -38,7 +38,10 @@ public class Main {
         Main app = new Main(getInput());
 
         // User incorrectly inputs an empty line
-        if (app.strings[0].isEmpty()) printInstructions();
+        if (app.strings[0].isEmpty()) {
+            printInstructions();
+            return 0;
+        }
 
         // User inputs an invalid property name (e.g. jojo)
         if (app.strings.length == 3) {
@@ -61,7 +64,9 @@ public class Main {
                 (property1.equals("ODD") && property2.equals("EVEN") ||
                         property1.equals("EVEN") && property2.equals("ODD")) ||
                 (property1.equals("SUNNY") && property2.equals("SQUARE") ||
-                        property1.equals("SQUARE") && property2.equals("SUNNY"))
+                        property1.equals("SQUARE") && property2.equals("SUNNY")) ||
+                (property1.equals("SPY") && property2.equals("DUCK") ||
+                    property1.equals("DUCK") && property2.equals("SPY"))
             ) {
                 printMutuallyExclusiveProperties(property1, property2);
                 return 0;
@@ -87,7 +92,6 @@ public class Main {
 
         // Map the first two numerical string values in strings[] to long[] numbersInput
         for (int i = 0; i < app.numbersInput.length; i++) {
-            if (i == app.numbersInput.length) break;
             try {
                 long result = Long.parseLong(app.strings[i]);
                 if (result < 0) {
@@ -118,13 +122,38 @@ public class Main {
         long length = (twoNaturalNumbers) ? numbersInput[1] : 1L;
 
         if (twoNaturalNumbers && strings.length == 4) {
-            System.out.println("Print out logic here for when we have four parameters");
+            printFourthOption(n, length);
         } else if (twoNaturalNumbers && strings.length == 3) {
             // Add logic to process 3rd user request
             printThirdOption(n, length, strings[2]);
         } else {
             printFirstSecondOption(n, length);
         }
+    }
+
+    private void printFourthOption(long n, long length) {
+        int i = 0;
+        int currentNum = (int) n;
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        while (i < length) {
+            Map<String, Boolean> boolMap = getBooleanMap(currentNum);
+
+            boolean firstPropertyIsTrue = boolMap.get(strings[2].toLowerCase());
+            boolean secondPropertyIsTrue = boolMap.get(strings[3].toLowerCase());
+
+            if (firstPropertyIsTrue && secondPropertyIsTrue) {
+                String tmpStr = buildNumberStatement(currentNum, boolMap);
+                stringBuilder.append(tmpStr);
+                if (i + 1 != length) {
+                    stringBuilder.append("\n");
+                }
+                i++;
+            }
+            currentNum++;
+        }
+        System.out.println(stringBuilder);
     }
 
     private void printFirstSecondOption(long n, long length) {
@@ -201,15 +230,16 @@ public class Main {
 
     private static void printInstructions() {
         System.out.println("""
-        Supported requests:
-        - enter a natural number to know its properties;
-        - enter two natural numbers to obtain the properties of the list:
-          * the first parameter represents a starting number;
-          * the second parameter shows how many consecutive numbers are to be printed;
-        - two natural numbers and a property to search for;
-        - separate the parameters with one space;
-        - enter 0 to exit.
-        """);
+            Supported requests:
+            - enter a natural number to know its properties;\s
+            - enter two natural numbers to obtain the properties of the list:
+              * the first parameter represents a starting number;
+              * the second parameter shows how many consecutive numbers are to be printed;
+            - two natural numbers and a property to search for;
+            - two natural numbers and two properties to search for;
+            - separate the parameters with one space;
+            - enter 0 to exit.
+            """);
     }
 
     private static void printIncorrectProperty(String propertyInput) {
@@ -221,16 +251,16 @@ public class Main {
 
     private static void printIncorrectProperties(String propertyInput1, String propertyInput2) {
         System.out.printf("""
-                The property [%s, %s] are wrong.
-                Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY]\n
-                """, propertyInput1, propertyInput2);
+                The properties [%s, %s] are wrong.
+                Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY]
+                %n""", propertyInput1, propertyInput2);
     }
 
     private static void printMutuallyExclusiveProperties(String propertyInput1, String propertyInput2) {
         System.out.printf("""
                 The request contains mutually exclusive properties: [%S, %S]
-                There are no numbers with these properties.\n
-                """, propertyInput1, propertyInput2);
+                There are no numbers with these properties.
+                %n""", propertyInput1, propertyInput2);
     }
 
     private boolean getBuzz(long n) {
