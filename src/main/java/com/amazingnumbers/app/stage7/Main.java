@@ -63,10 +63,10 @@ public class Main {
             } else if (
                     (property1.equals("ODD") && property2.equals("EVEN") ||
                             property1.equals("EVEN") && property2.equals("ODD")) ||
-                            (property1.equals("SUNNY") && property2.equals("SQUARE") ||
-                                    property1.equals("SQUARE") && property2.equals("SUNNY")) ||
-                            (property1.equals("SPY") && property2.equals("DUCK") ||
-                                    property1.equals("DUCK") && property2.equals("SPY"))
+                    (property1.equals("SUNNY") && property2.equals("SQUARE") ||
+                            property1.equals("SQUARE") && property2.equals("SUNNY")) ||
+                    (property1.equals("SPY") && property2.equals("DUCK") ||
+                            property1.equals("DUCK") && property2.equals("SPY"))
             ) {
                 printMutuallyExclusiveProperties(property1, property2);
                 return 0;
@@ -122,16 +122,16 @@ public class Main {
         long length = (twoNaturalNumbers) ? numbersInput[1] : 1L;
 
         if (twoNaturalNumbers && strings.length == 4) {
-            printFourthOption(n, length);
+            printFourthOption(n, length, strings);
         } else if (twoNaturalNumbers && strings.length == 3) {
             // Add logic to process 3rd user request
             printThirdOption(n, length, strings[2]);
         } else {
-            printFirstSecondOption(n, length);
+            printFirstSecondOption(n, length, twoNaturalNumbers);
         }
     }
 
-    private void printFourthOption(long n, long length) {
+    private static void printFourthOption(long n, long length, String[] strings) {
         int i = 0;
         int currentNum = (int) n;
 
@@ -156,7 +156,7 @@ public class Main {
         System.out.println(stringBuilder);
     }
 
-    private void printFirstSecondOption(long n, long length) {
+    private static void printFirstSecondOption(long n, long length, boolean twoNaturalNumbers) {
         for (int i = 0; i < length; i++) {
             // Store booleans into a LinkedHashMap since we need to filter for true values later
             long currentNum = n + i;
@@ -192,7 +192,7 @@ public class Main {
         }
     }
 
-    private void printThirdOption(long n, long length, String propertyInput) {
+    private static void printThirdOption(long n, long length, String propertyInput) {
         int i = 0;
         int currentNum = (int) n;
 
@@ -263,11 +263,11 @@ public class Main {
                 %n""", propertyInput1, propertyInput2);
     }
 
-    private boolean getBuzz(long n) {
+    private static boolean getBuzz(long n) {
         return (n % 7 == 0 || n % 10 == 7);
     }
 
-    private boolean getDuck(long n) {
+    private static boolean getDuck(long n) {
         String strNum = String.valueOf(n);
         for (int i = 0; i < strNum.length(); i++) {
             // NOTE: If we find a number and it is not at 0th index, then it is a Duck Number!!
@@ -278,7 +278,7 @@ public class Main {
         return false;
     }
 
-    private boolean getPalindromic(long n) {
+    private static boolean getPalindromic(long n) {
         String str = Long.toString(n);
         for (int i = 0; i < str.length() / 2; i++) {
             char curr = str.charAt(i);
@@ -290,7 +290,7 @@ public class Main {
         return true;
     }
 
-    private boolean getGapful(long n) {
+    private static boolean getGapful(long n) {
         if (n < 100) return false;
         // Convert long into string, then examine the first and last characters of the string
         String str = Long.toString(n);
@@ -303,11 +303,11 @@ public class Main {
         return (n % longNum == 0);
     }
 
-    private boolean getEven(long n) {
+    private static boolean getEven(long n) {
         return (n % 2 == 0);
     }
 
-    private boolean getSpy(long n) {
+    private static boolean getSpy(long n) {
         String numStr = String.valueOf(n);
         long sum = 0;
         long product = 1L;
@@ -320,17 +320,17 @@ public class Main {
         return (sum == product);
     }
 
-    private boolean getSquare(long n) {
+    private static boolean getSquare(long n) {
         double sqrt = Math.sqrt(n);
         return sqrt == (int) sqrt;
     }
 
-    private boolean getSunny(long n) {
+    private static boolean getSunny(long n) {
         long nextConsecutive = n + 1L;
         return getSquare(nextConsecutive);
     }
 
-    private String addCommasToLong(long n) {
+    private static String addCommasToLong(long n) {
         // Convert the number to a string
         String numberStr = String.valueOf(n);
 
@@ -350,7 +350,7 @@ public class Main {
         return result.reverse().toString();
     }
 
-    private Map<String, Boolean> getBooleanMap(long num) {
+    private static Map<String, Boolean> getBooleanMap(long num) {
         Map<String, Boolean> boolMap = new LinkedHashMap<>();
         boolMap.put("buzz", getBuzz(num));
         boolMap.put("duck", getDuck(num));
@@ -364,7 +364,7 @@ public class Main {
         return boolMap;
     }
 
-    private String buildNumberStatement(long num, Map<String, Boolean> map) {
+    private static String buildNumberStatement(long num, Map<String, Boolean> map) {
         StringBuilder strBuilder = new StringBuilder();
         String strNum = addCommasToLong(num);
         strBuilder.append(String.format("%s is", strNum));
