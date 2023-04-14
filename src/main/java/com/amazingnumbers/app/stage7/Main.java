@@ -11,6 +11,8 @@ public class Main {
     private long startingNum;
     private long consecutiveNum;
 
+    private String[] propertyInputs;
+
     public static void main(String[] args) {
         printWelcome();
         printInstructions();
@@ -23,6 +25,13 @@ public class Main {
 
     private Main(String[] _stringInput) {
         inputs = _stringInput;
+        if (_stringInput.length > 2) {
+            // Initialize propertyInputs with values from _stringInput
+            propertyInputs = new String[_stringInput.length - 2];
+            for (int i = 2; i < _stringInput.length; i++) {
+                propertyInputs[i - 2] = _stringInput[i].toUpperCase();
+            }
+        }
     }
 
     private static int run() {
@@ -38,21 +47,19 @@ public class Main {
         }
 
         // Update startingNum
-        if (app.inputs.length >= 1) {
-            try {
-                long result = Long.parseLong(app.inputs[0]);
-                if (result < 0) {
-                    throw new NumberFormatException();
-                } else {
-                    app.startingNum = result;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("The first parameter should be a natural number or zero.\n");
-                return 0;
+        try {
+            long result = Long.parseLong(app.inputs[0]);
+            if (result < 0) {
+                throw new NumberFormatException();
+            } else {
+                app.startingNum = result;
             }
+        } catch (NumberFormatException e) {
+            System.out.println("The first parameter should be a natural number or zero.\n");
+            return 0;
         }
 
-        // Update consecutiveNum
+        // consecutiveNum
         if (app.inputs.length >= 2) {
             try {
                 long result = Long.parseLong(app.inputs[1]);
@@ -88,18 +95,7 @@ public class Main {
             if (property1.equals(property2)) {
                 printMutuallyExclusiveProperties(property1, property2);
                 return 0;
-            } else if (
-                // Prevent user input of mutually exclusive properties
-                    // EVEN & ODD
-                    (property1.equals(Property.ODD.name()) && property2.equals(Property.EVEN.name()) ||
-                            property1.equals(Property.EVEN.name()) && property2.equals(Property.ODD.name())) ||
-                    // SUNNY & SQUARE
-                    (property1.equals(Property.SUNNY.name()) && property2.equals(Property.SQUARE.name()) ||
-                            property1.equals(Property.SQUARE.name()) && property2.equals(Property.SUNNY.name())) ||
-                    // SPY & DUCK
-                    (property1.equals(Property.SPY.name()) && property2.equals(Property.DUCK.name()) ||
-                            property1.equals(Property.DUCK.name()) && property2.equals(Property.SPY.name()))
-            ) {
+            } else if (isMutuallyExclusiveProperties(app.propertyInputs)) {
                 printMutuallyExclusiveProperties(property1, property2);
                 return 0;
             }
@@ -455,4 +451,11 @@ public class Main {
         return tmpStr.substring(0, tmpStr.length() - 1);
     }
 
+    private static boolean isMutuallyExclusiveProperties(String[] propertyInputs) {
+        List<String> list = Arrays.asList(propertyInputs);
+        boolean conflictingProperties = (list.contains(Property.EVEN.name()) && list.contains(Property.ODD.name())) ||
+                (list.contains(Property.SPY.name()) && list.contains(Property.DUCK.name())) ||
+                (list.contains(Property.SUNNY.name()) && list.contains(Property.SQUARE.name()));
+        return conflictingProperties;
+    }
 }
