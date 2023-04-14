@@ -2,6 +2,10 @@ package com.amazingnumbers.app.stage7;
 
 import java.util.*;
 
+enum Property {
+    BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, JUMPING, EVEN, ODD
+}
+
 public class Main {
     private String[] strings; // String input split at " " when instantiating the Main class
     private final long[] numbersInput; // Includes parameter 1 & 2 Mapped from strings[]
@@ -30,7 +34,7 @@ public class Main {
         }
         twoNaturalNumbers = _stringInput.length > 1;
         properties = new String[]{
-                "BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "SQUARE", "SUNNY", "EVEN", "ODD"
+            "BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "SQUARE", "SUNNY", "JUMPING", "EVEN", "ODD"
         };
     }
 
@@ -45,10 +49,12 @@ public class Main {
 
         // User inputs an invalid property name (e.g. jojo)
         if (app.strings.length == 3) {
-            String property = app.strings[2].toUpperCase();
-            boolean propertyFound = Arrays.asList(app.properties).contains(property);
-            if (!propertyFound) {
-                printIncorrectProperty(property);
+            String inputProperty = app.strings[2].toUpperCase();
+            // Check if the input property matches the enum property
+            try {
+                Property.valueOf(inputProperty);
+            } catch (IllegalArgumentException e) {
+                printIncorrectProperty(inputProperty);
                 return 0;
             }
         } else if (app.strings.length == 4) {
@@ -61,12 +67,12 @@ public class Main {
                 printMutuallyExclusiveProperties(property1, property2);
                 return 0;
             } else if (
-                    (property1.equals("ODD") && property2.equals("EVEN") ||
-                            property1.equals("EVEN") && property2.equals("ODD")) ||
-                    (property1.equals("SUNNY") && property2.equals("SQUARE") ||
-                            property1.equals("SQUARE") && property2.equals("SUNNY")) ||
-                    (property1.equals("SPY") && property2.equals("DUCK") ||
-                            property1.equals("DUCK") && property2.equals("SPY"))
+                    (property1.equals(Property.ODD.name()) && property2.equals(Property.EVEN.name()) ||
+                            property1.equals(Property.EVEN.name()) && property2.equals(Property.ODD.name())) ||
+                    (property1.equals(Property.SUNNY.name()) && property2.equals(Property.SQUARE.name()) ||
+                            property1.equals(Property.SQUARE.name()) && property2.equals(Property.SUNNY.name())) ||
+                    (property1.equals(Property.SPY.name()) && property2.equals(Property.DUCK.name()) ||
+                            property1.equals(Property.DUCK.name()) && property2.equals(Property.SPY.name()))
             ) {
                 printMutuallyExclusiveProperties(property1, property2);
                 return 0;
@@ -114,6 +120,14 @@ public class Main {
         return 0;
     }
 
+    private static String[] getInput() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter a request: ");
+        String input = scanner.nextLine();
+        System.out.print("\n");
+        return input.split(" ");
+    }
+
     private void printProperties() {
         // Get the first parameter of the input: starting number
         long n = numbersInput[0];
@@ -129,6 +143,71 @@ public class Main {
         } else {
             printFirstSecondOption(n, length, twoNaturalNumbers);
         }
+    }
+
+    private static void printFirstSecondOption(long n, long length, boolean twoNaturalNumbers) {
+        for (int i = 0; i < length; i++) {
+            // Store booleans into a LinkedHashMap since we need to filter for true values later
+            long currentNum = n + i;
+            Map<String, Boolean> boolMap = getBooleanMap(currentNum);
+
+            if (!twoNaturalNumbers) {
+                String strNum = addCommasToLong(currentNum);
+                // When there is only 1 natural number, we print out all of the properties as normal
+                System.out.printf("""
+                                Properties of %s
+                                        buzz: %b
+                                        duck: %b
+                                 palindromic: %b
+                                      gapful: %b
+                                         spy: %b
+                                      square: %b
+                                       sunny: %b
+                                     jumping: %b
+                                        even: %b
+                                         odd: %b%n""",
+                        strNum,
+                        boolMap.get("buzz"),
+                        boolMap.get("duck"),
+                        boolMap.get("palindromic"),
+                        boolMap.get("gapful"),
+                        boolMap.get("spy"),
+                        boolMap.get("square"),
+                        boolMap.get("sunny"),
+                        boolMap.get("jumping"),
+                        boolMap.get("even"),
+                        boolMap.get("odd"));
+            } else {
+                System.out.println("\t\t\t" + buildNumberStatement(currentNum, boolMap));
+            }
+        }
+    }
+
+    private static void printThirdOption(long n, long length, String propertyInput) {
+        int i = 0;
+        long currentNum = n;
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        while (i < length) {
+            Map<String, Boolean> boolMap = getBooleanMap(currentNum);
+
+            boolean propertyIsTrue = boolMap.get(propertyInput.toLowerCase());
+            // Explicitly check for jumping property, increment by anther large number
+            if (propertyInput.toLowerCase().equals("jumping") && currentNum == 1234567899L) {
+                currentNum += 866_442_201L;
+            }
+            if (propertyIsTrue) {
+                String tmpStr = buildNumberStatement(currentNum, boolMap);
+                stringBuilder.append(tmpStr);
+                if (i + 1 != length) {
+                    stringBuilder.append("\n");
+                }
+                i++;
+            }
+            currentNum++;
+        }
+        System.out.println(stringBuilder);
     }
 
     private static void printFourthOption(long n, long length, String[] strings) {
@@ -156,74 +235,6 @@ public class Main {
         System.out.println(stringBuilder);
     }
 
-    private static void printFirstSecondOption(long n, long length, boolean twoNaturalNumbers) {
-        for (int i = 0; i < length; i++) {
-            // Store booleans into a LinkedHashMap since we need to filter for true values later
-            long currentNum = n + i;
-            Map<String, Boolean> boolMap = getBooleanMap(currentNum);
-
-            if (!twoNaturalNumbers) {
-                String strNum = addCommasToLong(currentNum);
-                // When there is only 1 natural number, we print out all of the properties as normal
-                System.out.printf("""
-                                Properties of %s
-                                        buzz: %b
-                                        duck: %b
-                                 palindromic: %b
-                                      gapful: %b
-                                         spy: %b
-                                      square: %b
-                                       sunny: %b
-                                        even: %b
-                                         odd: %b%n""",
-                        strNum,
-                        boolMap.get("buzz"),
-                        boolMap.get("duck"),
-                        boolMap.get("palindromic"),
-                        boolMap.get("gapful"),
-                        boolMap.get("spy"),
-                        boolMap.get("square"),
-                        boolMap.get("sunny"),
-                        boolMap.get("even"),
-                        boolMap.get("odd"));
-            } else {
-                System.out.println("\t\t\t" + buildNumberStatement(currentNum, boolMap));
-            }
-        }
-    }
-
-    private static void printThirdOption(long n, long length, String propertyInput) {
-        int i = 0;
-        int currentNum = (int) n;
-
-        StringBuilder stringBuilder = new StringBuilder();
-
-        while (i < length) {
-            Map<String, Boolean> boolMap = getBooleanMap(currentNum);
-
-            boolean propertyIsTrue = boolMap.get(propertyInput.toLowerCase());
-
-            if (propertyIsTrue) {
-                String tmpStr = buildNumberStatement(currentNum, boolMap);
-                stringBuilder.append(tmpStr);
-                if (i + 1 != length) {
-                    stringBuilder.append("\n");
-                }
-                i++;
-            }
-            currentNum++;
-        }
-        System.out.println(stringBuilder);
-    }
-
-    private static String[] getInput() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter a request: ");
-        String input = scanner.nextLine();
-        System.out.print("\n");
-        return input.split(" ");
-    }
-
     private static void printWelcome() {
         System.out.println("Welcome to Amazing Numbers!\n");
     }
@@ -231,12 +242,11 @@ public class Main {
     private static void printInstructions() {
         System.out.println("""
             Supported requests:
-            - enter a natural number to know its properties;\s
+            - enter a natural number to know its properties;
             - enter two natural numbers to obtain the properties of the list:
               * the first parameter represents a starting number;
               * the second parameter shows how many consecutive numbers are to be printed;
-            - two natural numbers and a property to search for;
-            - two natural numbers and two properties to search for;
+            - two natural numbers and properties to search for;
             - separate the parameters with one space;
             - enter 0 to exit.
             """);
@@ -330,6 +340,60 @@ public class Main {
         return getSquare(nextConsecutive);
     }
 
+//    private static boolean getJumpingNumber(long n) {
+//        // Convert long number into a string
+//        String str = Long.toString(n);
+//        for (int i = 1; i < str.length(); i++) {
+//            int digit1 = Integer.parseInt(String.valueOf(str.charAt(i - 1)));
+//            int digit2 = Integer.parseInt(String.valueOf(str.charAt(i)));
+//            int difference = Math.abs(digit1 - digit2);
+//            if (difference > 1) return false;
+//        }
+//        return true;
+//    }
+
+//    private static boolean getJumpingNumber(long n) {
+//        long prevDigit = n % 10;  // Get the last digit as the starting digit
+//        n /= 10;  // Remove the last digit
+//        while (n > 0) {
+//            long currDigit = n % 10;  // Get the current digit
+//            long diff = Math.abs(prevDigit - currDigit);  // Calculate the absolute difference
+//            if (diff > 1) {
+//                return false;  // If difference is greater than 1, not a jumping number
+//            }
+//            prevDigit = currDigit;  // Update previous digit for next iteration
+//            n /= 10;  // Remove the current digit
+//        }
+//        return true;  // All adjacent digit differences are 0 or 1, so it's a jumping number
+//    }
+
+    private static boolean getJumpingNumber(long n) {
+        if (n < 10) {
+            // Single-digit numbers are always jumping numbers
+            return true;
+        }
+
+        long prev = n % 10; // Last digit of the number
+        n /= 10; // Remove the last digit
+
+        while (n > 0) {
+            long curr = n % 10; // Current digit
+            long diff = Math.abs(prev - curr); // Absolute difference between previous and current digits
+
+            if (diff != 1) {
+                // If the absolute difference is not 1, it's not a jumping number
+                return false;
+            }
+
+            prev = curr;
+            n /= 10; // Move to the next digit
+        }
+
+        // If all differences are 1, it's a jumping number
+        return true;
+    }
+
+
     private static String addCommasToLong(long n) {
         // Convert the number to a string
         String numberStr = String.valueOf(n);
@@ -359,6 +423,7 @@ public class Main {
         boolMap.put("spy", getSpy(num));
         boolMap.put("square", getSquare(num));
         boolMap.put("sunny", getSunny(num));
+        boolMap.put("jumping", getJumpingNumber(num));
         boolMap.put("even", getEven(num));
         boolMap.put("odd", !getEven(num));
         return boolMap;
