@@ -10,7 +10,6 @@ public class Main {
     private String[] inputs; // String input split at " " when instantiating the Main class
     private long startingNum;
     private long consecutiveNum;
-
     private String[] propertyInputs;
 
     public static void main(String[] args) {
@@ -37,10 +36,10 @@ public class Main {
     private static int run() {
         Main app = new Main(getInput());
 
-        // Terminate app when user inputs "0"
+        // Terminate app
         if (app.inputs[0].equals("0")) return -1;
 
-        // User incorrectly inputs an empty line
+        // Re-prompt instructions if user inputs an empty line
         if (app.inputs[0].isEmpty()) {
             printInstructions();
             return 0;
@@ -91,7 +90,7 @@ public class Main {
             String property1 = app.inputs[2].toUpperCase();
             String property2 = app.inputs[3].toUpperCase();
 
-            // Prevent user input for same property
+            // Prevent user inputting the same property e.g. [DUCK, DUCK]
             if (property1.equals(property2)) {
                 printMutuallyExclusiveProperties(property1, property2);
                 return 0;
@@ -346,33 +345,6 @@ public class Main {
         long nextConsecutive = n + 1L;
         return getSquare(nextConsecutive);
     }
-
-//    private static boolean getJumpingNumber(long n) {
-//        // Convert long number into a string
-//        String str = Long.toString(n);
-//        for (int i = 1; i < str.length(); i++) {
-//            int digit1 = Integer.parseInt(String.valueOf(str.charAt(i - 1)));
-//            int digit2 = Integer.parseInt(String.valueOf(str.charAt(i)));
-//            int difference = Math.abs(digit1 - digit2);
-//            if (difference > 1) return false;
-//        }
-//        return true;
-//    }
-
-//    private static boolean getJumpingNumber(long n) {
-//        long prevDigit = n % 10;  // Get the last digit as the starting digit
-//        n /= 10;  // Remove the last digit
-//        while (n > 0) {
-//            long currDigit = n % 10;  // Get the current digit
-//            long diff = Math.abs(prevDigit - currDigit);  // Calculate the absolute difference
-//            if (diff > 1) {
-//                return false;  // If difference is greater than 1, not a jumping number
-//            }
-//            prevDigit = currDigit;  // Update previous digit for next iteration
-//            n /= 10;  // Remove the current digit
-//        }
-//        return true;  // All adjacent digit differences are 0 or 1, so it's a jumping number
-//    }
 
     private static boolean getJumpingNumber(long n) {
         if (n < 10) {
