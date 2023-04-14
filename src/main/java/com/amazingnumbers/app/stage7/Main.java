@@ -372,7 +372,6 @@ public class Main {
         return true;
     }
 
-
     private static String addCommasToLong(long n) {
         // Convert the number to a string
         String numberStr = String.valueOf(n);
@@ -425,9 +424,10 @@ public class Main {
 
     private static boolean isMutuallyExclusiveProperties(String[] propertyInputs) {
         List<String> list = Arrays.asList(propertyInputs);
-        boolean conflictingProperties = (list.contains(Property.EVEN.name()) && list.contains(Property.ODD.name())) ||
-                (list.contains(Property.SPY.name()) && list.contains(Property.DUCK.name())) ||
-                (list.contains(Property.SUNNY.name()) && list.contains(Property.SQUARE.name()));
-        return conflictingProperties;
+        // Conflicting properties
+        boolean oddEven = list.contains(Property.EVEN.name()) && list.contains(Property.ODD.name());
+        boolean spyDuck = list.contains(Property.SPY.name()) && list.contains(Property.DUCK.name());
+        boolean sunnySquare = list.contains(Property.SUNNY.name()) && list.contains(Property.SQUARE.name());
+        return oddEven || spyDuck || sunnySquare;
     }
 }
