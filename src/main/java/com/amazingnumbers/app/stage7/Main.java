@@ -7,10 +7,9 @@ enum Property {
 }
 
 public class Main {
-    private String[] strings; // String input split at " " when instantiating the Main class
-    private final long[] numbersInput; // Includes parameter 1 & 2 Mapped from strings[]
-    private boolean twoNaturalNumbers;
-    private final String[] properties;
+    private String[] inputs; // String input split at " " when instantiating the Main class
+    private long startingNum;
+    private long consecutiveNum;
 
     public static void main(String[] args) {
         printWelcome();
@@ -23,33 +22,54 @@ public class Main {
     }
 
     private Main(String[] _stringInput) {
-        strings = _stringInput;
-        // The size of the numbersInput array will depend on how many additional properties are added
-        if (_stringInput.length == 4) {
-            numbersInput = new long[_stringInput.length - 2];
-        } else if (_stringInput.length == 3) {
-            numbersInput = new long[_stringInput.length - 1];
-        } else {
-            numbersInput = new long[_stringInput.length];
-        }
-        twoNaturalNumbers = _stringInput.length > 1;
-        properties = new String[]{
-            "BUZZ", "DUCK", "PALINDROMIC", "GAPFUL", "SPY", "SQUARE", "SUNNY", "JUMPING", "EVEN", "ODD"
-        };
+        inputs = _stringInput;
     }
 
     private static int run() {
         Main app = new Main(getInput());
 
+        // Terminate app when user inputs "0"
+        if (app.inputs[0].equals("0")) return -1;
+
         // User incorrectly inputs an empty line
-        if (app.strings[0].isEmpty()) {
+        if (app.inputs[0].isEmpty()) {
             printInstructions();
             return 0;
         }
 
+        // Update startingNum
+        if (app.inputs.length >= 1) {
+            try {
+                long result = Long.parseLong(app.inputs[0]);
+                if (result < 0) {
+                    throw new NumberFormatException();
+                } else {
+                    app.startingNum = result;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("The first parameter should be a natural number or zero.\n");
+                return 0;
+            }
+        }
+
+        // Update consecutiveNum
+        if (app.inputs.length >= 2) {
+            try {
+                long result = Long.parseLong(app.inputs[1]);
+                if (result < 0) {
+                    throw new NumberFormatException();
+                } else {
+                    app.consecutiveNum = result;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("The second parameter should be a natural number.\n");
+                return 0;
+            }
+        }
+
         // User inputs an invalid property name (e.g. jojo)
-        if (app.strings.length == 3) {
-            String inputProperty = app.strings[2].toUpperCase();
+        if (app.inputs.length == 3) {
+            String inputProperty = app.inputs[2].toUpperCase();
             // Check if the input property matches the enum property
             try {
                 Property.valueOf(inputProperty);
@@ -57,20 +77,26 @@ public class Main {
                 printIncorrectProperty(inputProperty);
                 return 0;
             }
-        } else if (app.strings.length == 4) {
-            // User inputs an invalid multiple or single invalid property names (e.g. jojo drake)
-            String property1 = app.strings[2].toUpperCase();
-            String property2 = app.strings[3].toUpperCase();
+        } else if (app.inputs.length >= 4) {
+            // There are at least two or more property inputs, therefore we must compare multiple properties
 
-            // Check for mutually exclusive properties
+            // Property inputs an invalid multiple or single invalid property names (e.g. jojo drake)
+            String property1 = app.inputs[2].toUpperCase();
+            String property2 = app.inputs[3].toUpperCase();
+
+            // Prevent user input for same property
             if (property1.equals(property2)) {
                 printMutuallyExclusiveProperties(property1, property2);
                 return 0;
             } else if (
+                // Prevent user input of mutually exclusive properties
+                    // EVEN & ODD
                     (property1.equals(Property.ODD.name()) && property2.equals(Property.EVEN.name()) ||
                             property1.equals(Property.EVEN.name()) && property2.equals(Property.ODD.name())) ||
+                    // SUNNY & SQUARE
                     (property1.equals(Property.SUNNY.name()) && property2.equals(Property.SQUARE.name()) ||
                             property1.equals(Property.SQUARE.name()) && property2.equals(Property.SUNNY.name())) ||
+                    // SPY & DUCK
                     (property1.equals(Property.SPY.name()) && property2.equals(Property.DUCK.name()) ||
                             property1.equals(Property.DUCK.name()) && property2.equals(Property.SPY.name()))
             ) {
@@ -78,8 +104,16 @@ public class Main {
                 return 0;
             }
 
-            boolean property1Found = Arrays.asList(app.properties).contains(property1);
-            boolean property2Found = Arrays.asList(app.properties).contains(property2);
+            // Check for valid enum properties from user input
+            boolean property1Found = false;
+            boolean property2Found = false;
+            for (Enum enumProperty : Property.values()) {
+                if (property1.equals(enumProperty.name())) {
+                    property1Found = true;
+                } else if (property2.equals(enumProperty.name())) {
+                    property2Found = true;
+                }
+            }
 
             if (!property1Found && !property2Found) {
                 printIncorrectProperties(property1, property2);
@@ -89,28 +123,6 @@ public class Main {
                 return 0;
             } else if (!property2Found) {
                 printIncorrectProperty(property2);
-                return 0;
-            }
-        }
-
-        // Terminate app when user inputs "0"
-        if (!app.twoNaturalNumbers && app.strings[0].equals("0")) return -1;
-
-        // Map the first two numerical string values in strings[] to long[] numbersInput
-        for (int i = 0; i < app.numbersInput.length; i++) {
-            try {
-                long result = Long.parseLong(app.strings[i]);
-                if (result < 0) {
-                    throw new NumberFormatException();
-                } else {
-                    app.numbersInput[i] = result;
-                }
-            } catch (NumberFormatException e) {
-                if (i == 0) {
-                    System.out.println("The first parameter should be a natural number or zero.\n");
-                } else if (i == 1) {
-                    System.out.println("The second parameter should be a natural number.\n");
-                }
                 return 0;
             }
         }
@@ -130,28 +142,27 @@ public class Main {
 
     private void printProperties() {
         // Get the first parameter of the input: starting number
-        long n = numbersInput[0];
+        long n = startingNum;
 
         // Get the second parameter of the input: consecutive numbers
-        long length = (twoNaturalNumbers) ? numbersInput[1] : 1L;
+        long length = (inputs.length >= 2) ? consecutiveNum : 1L;
 
-        if (twoNaturalNumbers && strings.length == 4) {
-            printFourthOption(n, length, strings);
-        } else if (twoNaturalNumbers && strings.length == 3) {
-            // Add logic to process 3rd user request
-            printThirdOption(n, length, strings[2]);
+        if (inputs.length > 3) {
+            printFourthOption(n, length, inputs);
+        } else if (inputs.length == 3) {
+            printThirdOption(n, length, inputs[2]);
         } else {
-            printFirstSecondOption(n, length, twoNaturalNumbers);
+            printFirstSecondOption(n, length, inputs.length);
         }
     }
 
-    private static void printFirstSecondOption(long n, long length, boolean twoNaturalNumbers) {
+    private static void printFirstSecondOption(long n, long length, int inputsLength) {
         for (int i = 0; i < length; i++) {
             // Store booleans into a LinkedHashMap since we need to filter for true values later
             long currentNum = n + i;
             Map<String, Boolean> boolMap = getBooleanMap(currentNum);
 
-            if (!twoNaturalNumbers) {
+            if (inputsLength == 1) {
                 String strNum = addCommasToLong(currentNum);
                 // When there is only 1 natural number, we print out all of the properties as normal
                 System.out.printf("""
