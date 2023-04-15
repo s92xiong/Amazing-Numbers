@@ -7,7 +7,7 @@ enum Property {
 }
 
 public class Main {
-    private String[] inputs; // String input split at " " when instantiating the Main class
+    private final String[] inputs; // String input split at " " when instantiating the Main class
     private long startingNum;
     private long consecutiveNum;
     private String[] propertyInputs;
@@ -243,7 +243,7 @@ public class Main {
     private static boolean isDuck(long n) {
         String strNum = String.valueOf(n);
         for (int i = 0; i < strNum.length(); i++) {
-            // NOTE: If we find a number and it is not at 0th index, then it is a Duck Number!!
+            // NOTE: If we find a number, and it is not at 0th index, then it is a Duck Number!!
             if (i != 0 && strNum.charAt(i) == '0') {
                 return true;
             }
@@ -333,7 +333,7 @@ public class Main {
         // Convert the number to a string
         String numberStr = String.valueOf(n);
 
-        // Reverse the string so we can process it from right to left
+        // Reverse the string, so we can process it from right to left
         String reversedStr = new StringBuilder(numberStr).reverse().toString();
 
         // Add commas to the string every 3 digits
