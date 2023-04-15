@@ -58,7 +58,7 @@ public class Main {
             return 0;
         }
 
-        // consecutiveNum
+        // Update consecutiveNum
         if (app.inputs.length >= 2) {
             try {
                 long result = Long.parseLong(app.inputs[1]);
@@ -73,51 +73,26 @@ public class Main {
             }
         }
 
-        // User inputs an invalid property name (e.g. jojo)
-        if (app.inputs.length == 3) {
-            String inputProperty = app.inputs[2].toUpperCase();
-            // Check if the input property matches the enum property
-            try {
-                Property.valueOf(inputProperty);
-            } catch (IllegalArgumentException e) {
-                printIncorrectProperty(inputProperty);
-                return 0;
-            }
-        } else if (app.inputs.length >= 4) {
-            // There are at least two or more property inputs, therefore we must compare multiple properties
-
-            // Property inputs an invalid multiple or single invalid property names (e.g. jojo drake)
-            String property1 = app.inputs[2].toUpperCase();
-            String property2 = app.inputs[3].toUpperCase();
-
-            // Prevent user inputting the same property e.g. [DUCK, DUCK]
-            if (property1.equals(property2)) {
-                printMutuallyExclusiveProperties(property1, property2);
-                return 0;
-            } else if (isMutuallyExclusiveProperties(app.propertyInputs)) {
-                printMutuallyExclusiveProperties(property1, property2);
+        // Property validation
+        if (app.inputs.length >= 3) {
+            // Check if properties exist in the enum
+            List<String> invalidProperties = checkPropertiesExistInEnum(app.propertyInputs);
+            if (!invalidProperties.isEmpty()) {
+                printIncorrectProperties(invalidProperties);
                 return 0;
             }
 
-            // Check for valid enum properties from user input
-            boolean property1Found = false;
-            boolean property2Found = false;
-            for (Enum enumProperty : Property.values()) {
-                if (property1.equals(enumProperty.name())) {
-                    property1Found = true;
-                } else if (property2.equals(enumProperty.name())) {
-                    property2Found = true;
-                }
+            // Check for duplicate property inputs
+            String[] duplicateProperties = hasDuplicates(app.propertyInputs);
+            if (duplicateProperties != null) {
+                printMutuallyExclusiveProperties(duplicateProperties);
+                return 0;
             }
 
-            if (!property1Found && !property2Found) {
-                printIncorrectProperties(property1, property2);
-                return 0;
-            } else if (!property1Found) {
-                printIncorrectProperty(property1);
-                return 0;
-            } else if (!property2Found) {
-                printIncorrectProperty(property2);
+            // Check for mutually exclusive property inputs
+            String[] mutuallyExclusiveProps = isMutuallyExclusiveProperties(app.propertyInputs);
+            if (mutuallyExclusiveProps != null) {
+                printMutuallyExclusiveProperties(mutuallyExclusiveProps);
                 return 0;
             }
         }
@@ -136,30 +111,24 @@ public class Main {
     }
 
     private void printProperties() {
-        // Get the first parameter of the input: starting number
-        long n = startingNum;
-
-        // Get the second parameter of the input: consecutive numbers
         long length = (inputs.length >= 2) ? consecutiveNum : 1L;
-
-        if (inputs.length > 3) {
-            printFourthOption(n, length, inputs);
-        } else if (inputs.length == 3) {
-            printThirdOption(n, length, inputs[2]);
+        if (inputs.length >= 3) {
+            printAdditionalProperties(startingNum, length, propertyInputs);
         } else {
-            printFirstSecondOption(n, length, inputs.length);
+            printFirstOrSecondOption(startingNum, length, inputs.length);
         }
     }
 
-    private static void printFirstSecondOption(long n, long length, int inputsLength) {
+    private static void printFirstOrSecondOption(long n, long length, int inputsLength) {
+        // This runs when the input has two natural numbers with or without a single property
         for (int i = 0; i < length; i++) {
             // Store booleans into a LinkedHashMap since we need to filter for true values later
             long currentNum = n + i;
             Map<String, Boolean> boolMap = getBooleanMap(currentNum);
 
             if (inputsLength == 1) {
-                String strNum = addCommasToLong(currentNum);
-                // When there is only 1 natural number, we print out all of the properties as normal
+                String strNum = formatLongNumberWithCommas(currentNum);
+                // When there is only 1 natural number, we print out all properties as normal
                 System.out.printf("""
                                 Properties of %s
                                         buzz: %b
@@ -189,7 +158,7 @@ public class Main {
         }
     }
 
-    private static void printThirdOption(long n, long length, String propertyInput) {
+    private static void printAdditionalProperties(long n, long length, String[] propertyInputs) {
         int i = 0;
         long currentNum = n;
 
@@ -198,12 +167,13 @@ public class Main {
         while (i < length) {
             Map<String, Boolean> boolMap = getBooleanMap(currentNum);
 
-            boolean propertyIsTrue = boolMap.get(propertyInput.toLowerCase());
-            // Explicitly check for jumping property, increment by anther large number
-            if (propertyInput.toLowerCase().equals("jumping") && currentNum == 1234567899L) {
+            // Explicitly check for jumping property, increment by large number
+            if (propertyInputs[0].equalsIgnoreCase("jumping") && currentNum == 1234567899L) {
                 currentNum += 866_442_201L;
             }
-            if (propertyIsTrue) {
+
+            boolean trueProperties = allPropertiesAreTrue(boolMap, propertyInputs);
+            if (trueProperties) {
                 String tmpStr = buildNumberStatement(currentNum, boolMap);
                 stringBuilder.append(tmpStr);
                 if (i + 1 != length) {
@@ -216,29 +186,13 @@ public class Main {
         System.out.println(stringBuilder);
     }
 
-    private static void printFourthOption(long n, long length, String[] strings) {
-        int i = 0;
-        int currentNum = (int) n;
-
-        StringBuilder stringBuilder = new StringBuilder();
-
-        while (i < length) {
-            Map<String, Boolean> boolMap = getBooleanMap(currentNum);
-
-            boolean firstPropertyIsTrue = boolMap.get(strings[2].toLowerCase());
-            boolean secondPropertyIsTrue = boolMap.get(strings[3].toLowerCase());
-
-            if (firstPropertyIsTrue && secondPropertyIsTrue) {
-                String tmpStr = buildNumberStatement(currentNum, boolMap);
-                stringBuilder.append(tmpStr);
-                if (i + 1 != length) {
-                    stringBuilder.append("\n");
-                }
-                i++;
-            }
-            currentNum++;
+    private static boolean allPropertiesAreTrue(Map<String, Boolean> map, String[] propertyInputs) {
+        // Check the boolean Map to see if the property inputs are all true
+        for (String input : propertyInputs) {
+            boolean result = map.get(input.toLowerCase());
+            if (!result) return false;
         }
-        System.out.println(stringBuilder);
+        return true;
     }
 
     private static void printWelcome() {
@@ -258,32 +212,35 @@ public class Main {
             """);
     }
 
-    private static void printIncorrectProperty(String propertyInput) {
+    private static void printIncorrectProperties(List<String> properties) {
+        String plural1 = properties.size() > 1 ? "properties" : "property";
+        String plural2 = properties.size() > 1 ? "are" : "is";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < properties.size(); i++) {
+            sb.append(properties.get(i));
+            if (i + 1 != properties.size()) {
+                sb.append(", ");
+            }
+        }
         System.out.printf("""
-                The property [%s] is wrong.
-                Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY]
-                %n""", propertyInput);
+                The %s [%s] %s wrong.
+                Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, JUMPING]
+                %n""", plural1, sb, plural2);
     }
 
-    private static void printIncorrectProperties(String propertyInput1, String propertyInput2) {
+    private static void printMutuallyExclusiveProperties(String[] properties) {
+        String str = properties[0] + ", " + properties[1];
         System.out.printf("""
-                The properties [%s, %s] are wrong.
-                Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY]
-                %n""", propertyInput1, propertyInput2);
-    }
-
-    private static void printMutuallyExclusiveProperties(String propertyInput1, String propertyInput2) {
-        System.out.printf("""
-                The request contains mutually exclusive properties: [%S, %S]
+                The request contains mutually exclusive properties: [%S]
                 There are no numbers with these properties.
-                %n""", propertyInput1, propertyInput2);
+                %n""", str);
     }
 
-    private static boolean getBuzz(long n) {
+    private static boolean isBuzz(long n) {
         return (n % 7 == 0 || n % 10 == 7);
     }
 
-    private static boolean getDuck(long n) {
+    private static boolean isDuck(long n) {
         String strNum = String.valueOf(n);
         for (int i = 0; i < strNum.length(); i++) {
             // NOTE: If we find a number and it is not at 0th index, then it is a Duck Number!!
@@ -294,7 +251,7 @@ public class Main {
         return false;
     }
 
-    private static boolean getPalindromic(long n) {
+    private static boolean isPalindromic(long n) {
         String str = Long.toString(n);
         for (int i = 0; i < str.length() / 2; i++) {
             char curr = str.charAt(i);
@@ -306,7 +263,7 @@ public class Main {
         return true;
     }
 
-    private static boolean getGapful(long n) {
+    private static boolean isGapful(long n) {
         if (n < 100) return false;
         // Convert long into string, then examine the first and last characters of the string
         String str = Long.toString(n);
@@ -319,11 +276,11 @@ public class Main {
         return (n % longNum == 0);
     }
 
-    private static boolean getEven(long n) {
+    private static boolean isEven(long n) {
         return (n % 2 == 0);
     }
 
-    private static boolean getSpy(long n) {
+    private static boolean isSpy(long n) {
         String numStr = String.valueOf(n);
         long sum = 0;
         long product = 1L;
@@ -336,17 +293,17 @@ public class Main {
         return (sum == product);
     }
 
-    private static boolean getSquare(long n) {
+    private static boolean isSquare(long n) {
         double sqrt = Math.sqrt(n);
         return sqrt == (int) sqrt;
     }
 
-    private static boolean getSunny(long n) {
+    private static boolean isSunny(long n) {
         long nextConsecutive = n + 1L;
-        return getSquare(nextConsecutive);
+        return isSquare(nextConsecutive);
     }
 
-    private static boolean getJumpingNumber(long n) {
+    private static boolean isJumpingNumber(long n) {
         if (n < 10) {
             // Single-digit numbers are always jumping numbers
             return true;
@@ -372,7 +329,7 @@ public class Main {
         return true;
     }
 
-    private static String addCommasToLong(long n) {
+    private static String formatLongNumberWithCommas(long n) {
         // Convert the number to a string
         String numberStr = String.valueOf(n);
 
@@ -394,22 +351,22 @@ public class Main {
 
     private static Map<String, Boolean> getBooleanMap(long num) {
         Map<String, Boolean> boolMap = new LinkedHashMap<>();
-        boolMap.put("buzz", getBuzz(num));
-        boolMap.put("duck", getDuck(num));
-        boolMap.put("palindromic", getPalindromic(num));
-        boolMap.put("gapful", getGapful(num));
-        boolMap.put("spy", getSpy(num));
-        boolMap.put("square", getSquare(num));
-        boolMap.put("sunny", getSunny(num));
-        boolMap.put("jumping", getJumpingNumber(num));
-        boolMap.put("even", getEven(num));
-        boolMap.put("odd", !getEven(num));
+        boolMap.put("buzz", isBuzz(num));
+        boolMap.put("duck", isDuck(num));
+        boolMap.put("palindromic", isPalindromic(num));
+        boolMap.put("gapful", isGapful(num));
+        boolMap.put("spy", isSpy(num));
+        boolMap.put("square", isSquare(num));
+        boolMap.put("sunny", isSunny(num));
+        boolMap.put("jumping", isJumpingNumber(num));
+        boolMap.put("even", isEven(num));
+        boolMap.put("odd", !isEven(num));
         return boolMap;
     }
 
     private static String buildNumberStatement(long num, Map<String, Boolean> map) {
         StringBuilder strBuilder = new StringBuilder();
-        String strNum = addCommasToLong(num);
+        String strNum = formatLongNumberWithCommas(num);
         strBuilder.append(String.format("%s is", strNum));
         for (Map.Entry<String, Boolean> entry : map.entrySet()) {
             // If the value is true, then we add it to the StringBuilder
@@ -422,12 +379,53 @@ public class Main {
         return tmpStr.substring(0, tmpStr.length() - 1);
     }
 
-    private static boolean isMutuallyExclusiveProperties(String[] propertyInputs) {
+    private static String[] isMutuallyExclusiveProperties(String[] propertyInputs) {
         List<String> list = Arrays.asList(propertyInputs);
+        String[] arr = new String[2];
         // Conflicting properties
         boolean oddEven = list.contains(Property.EVEN.name()) && list.contains(Property.ODD.name());
         boolean spyDuck = list.contains(Property.SPY.name()) && list.contains(Property.DUCK.name());
         boolean sunnySquare = list.contains(Property.SUNNY.name()) && list.contains(Property.SQUARE.name());
-        return oddEven || spyDuck || sunnySquare;
+        if (oddEven) {
+            arr[0] = "ODD";
+            arr[1] = "EVEN";
+            return arr;
+        } else if (spyDuck) {
+            arr[0] = "SPY";
+            arr[1] = "DUCK";
+            return arr;
+        } else if (sunnySquare) {
+            arr[0] = "SUNNY";
+            arr[1] = "SQUARE";
+            return arr;
+        }
+        return null;
+    }
+
+    private static List<String> checkPropertiesExistInEnum(String[] propertyInputs) {
+        List<String> list = new LinkedList<>();
+        for (String input : propertyInputs) {
+            try {
+                Property.valueOf(input.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                list.add(input);
+            }
+        }
+        return list;
+    }
+
+    private static String[] hasDuplicates(String[] propertyInputs) {
+        // Use a HashSet since it doesn't allow duplicate elements
+        Set<String> set = new HashSet<>();
+        String[] arr = new String[2];
+        for (String input : propertyInputs) {
+            // Return the string that has the duplicate
+            if (!set.add(input)) {
+                arr[0] = input;
+                arr[1] = input;
+                return arr;
+            }
+        }
+        return null;
     }
 }
