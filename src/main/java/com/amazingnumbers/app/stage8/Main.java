@@ -131,6 +131,8 @@ public class Main {
                 // When there is only 1 natural number, we print out all properties as normal
                 System.out.printf("""
                                 Properties of %s
+                                        even: %b
+                                         odd: %b
                                         buzz: %b
                                         duck: %b
                                  palindromic: %b
@@ -139,8 +141,8 @@ public class Main {
                                       square: %b
                                        sunny: %b
                                      jumping: %b
-                                        even: %b
-                                         odd: %b%n""",
+                                       happy: %b
+                                         sad: %b%n""",
                         strNum,
                         boolMap.get("odd"),
                         boolMap.get("even"),
@@ -226,7 +228,8 @@ public class Main {
         }
         System.out.printf("""
                 The %s [%s] %s wrong.
-                Available properties: [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, JUMPING]
+                Available properties:
+                [EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, JUMPING, HAPPY, SAD]
                 %n""", plural1, sb, plural2);
     }
 
@@ -331,6 +334,27 @@ public class Main {
         return true;
     }
 
+    private static boolean isHappyNumber(long n) {
+        if (n <= 0 ) return false;
+        long num = n;
+        Set<Integer> seen = new HashSet<>(); // Store numbers (sum) that have been seen
+
+        while (num != 1) {
+            int sum = 0;
+            while (num > 0) {
+                int digit = (int) (num % 10); // Extract the last digit
+                sum += (digit * digit);
+                num /= 10; // Remove the last digit
+            }
+            if (seen.contains(sum)) return false;
+            seen.add(sum);
+            num = sum;
+        }
+
+        return true; // If loop terminates with n = 1, it's a happy number
+    }
+
+
     private static String formatLongNumberWithCommas(long n) {
         // Convert the number to a string
         String numberStr = String.valueOf(n);
@@ -354,6 +378,7 @@ public class Main {
     private static Map<String, Boolean> getBooleanMap(long num) {
         Map<String, Boolean> boolMap = new LinkedHashMap<>();
         boolean numIsEven = isEven(num);
+        boolean numIsHappy = isHappyNumber(num);
 
         boolMap.put("even", numIsEven);
         boolMap.put("odd", !numIsEven);
@@ -365,8 +390,8 @@ public class Main {
         boolMap.put("square", isSquare(num));
         boolMap.put("sunny", isSunny(num));
         boolMap.put("jumping", isJumpingNumber(num));
-//        boolMap.put("jumping", isJumpingNumber(num));
-//        boolMap.put("jumping", isJumpingNumber(num));
+        boolMap.put("happy", numIsHappy);
+        boolMap.put("sad", !numIsHappy);
         return boolMap;
     }
 
