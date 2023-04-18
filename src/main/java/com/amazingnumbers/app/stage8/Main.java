@@ -238,7 +238,6 @@ public class Main {
         // Property validation
         if (app.inputs.length >= 3) {
             // Check if properties exist in the enum
-            // --------------------------------------------------
             List<String> invalidProperties = app.checkPropertiesExistInEnum(app.propertyInputs);
             if (!invalidProperties.isEmpty()) {
                 printIncorrectProperties(invalidProperties);
@@ -525,10 +524,11 @@ public class Main {
         Set<String> set = new HashSet<>();
         String[] arr = new String[2];
         for (String input : propertyInputs) {
+            String str = (input.charAt(0) == '-') ? removeFirstChar(input) : input;
             // Return the string that has the duplicate
-            if (!set.add(input)) {
-                arr[0] = input;
-                arr[1] = input;
+            if (!set.add(str)) {
+                arr[0] = str;
+                arr[1] = str;
                 return arr;
             }
         }
