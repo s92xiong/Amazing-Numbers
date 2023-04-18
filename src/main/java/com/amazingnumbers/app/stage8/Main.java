@@ -2,8 +2,168 @@ package com.amazingnumbers.app.stage8;
 
 import java.util.*;
 
-enum Property {
-    EVEN, ODD, BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, JUMPING, HAPPY, SAD
+enum NumberProperty {
+    EVEN("EVEN", "-EVEN") {
+        @Override
+        public boolean performOperation(long n) {
+            return (n % 2 == 0);
+        }
+    },
+    // Has odd
+    ODD("ODD", "-ODD") {
+        @Override
+        public boolean performOperation(long n) {
+            return !EVEN.performOperation(n);
+        }
+    },
+    BUZZ("BUZZ", "-BUZZ") {
+        public boolean performOperation(long n) {
+            return (n % 7 == 0 || n % 10 == 7);
+        }
+    },
+    DUCK("DUCK", "-DUCK") {
+        public boolean performOperation(long n) {
+            String strNum = String.valueOf(n);
+            for (int i = 0; i < strNum.length(); i++) {
+                // NOTE: If we find a number, and it is not at 0th index, then it is a Duck Number!!
+                if (i != 0 && strNum.charAt(i) == '0') {
+                    return true;
+                }
+            }
+            return false;
+        }
+    },
+    PALINDROMIC("PALINDROMIC", "-PALINDROMIC") {
+        @Override
+        public boolean performOperation(long n) {
+            String str = Long.toString(n);
+            for (int i = 0; i < str.length() / 2; i++) {
+                char curr = str.charAt(i);
+                char oppChar = str.charAt(str.length() - 1 - i);
+                if (curr != oppChar) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    },
+    GAPFUL("GAPFUL", "-GAPFUL") {
+        @Override
+        public boolean performOperation(long n) {
+            if (n < 100) return false;
+            // Convert long into string, then examine the first and last characters of the string
+            String str = Long.toString(n);
+            char firstDigit = str.charAt(0);
+            char lastDigit = str.charAt(str.length() - 1);
+
+            // Concatenate the string and convert it back into a long
+            String concatStr = String.valueOf(firstDigit) + lastDigit;
+            long longNum = Long.parseLong(concatStr);
+            return (n % longNum == 0);
+        }
+    },
+    SPY("SPY", "-SPY") {
+        @Override
+        public boolean performOperation(long n) {
+            String numStr = String.valueOf(n);
+            long sum = 0;
+            long product = 1L;
+
+            for (int i = 0; i < numStr.length(); i++) {
+                long digit = Character.getNumericValue(numStr.charAt(i));
+                sum += digit;
+                product *= digit;
+            }
+            return (sum == product);
+        }
+    },
+    SQUARE("SQUARE", "-SQUARE") {
+        @Override
+        public boolean performOperation(long n) {
+            double sqrt = Math.sqrt(n);
+            return sqrt == (int) sqrt;
+        }
+    },
+    SUNNY("SUNNY", "-SUNNY") {
+        @Override
+        public boolean performOperation(long n) {
+            long nextConsecutive = n + 1L;
+            return SQUARE.performOperation(nextConsecutive);
+        }
+    },
+    JUMPING("JUMPING", "-JUMPING") {
+        @Override
+        public boolean performOperation(long n) {
+            if (n < 10) {
+                // Single-digit numbers are always jumping numbers
+                return true;
+            }
+
+            long prev = n % 10; // Last digit of the number
+            n /= 10; // Remove the last digit
+
+            while (n > 0) {
+                long curr = n % 10; // Current digit
+                long diff = Math.abs(prev - curr); // Absolute difference between previous and current digits
+
+                if (diff != 1) {
+                    // If the absolute difference is not 1, it's not a jumping number
+                    return false;
+                }
+
+                prev = curr;
+                n /= 10; // Move to the next digit
+            }
+
+            // If all differences are 1, it's a jumping number
+            return true;
+        }
+    },
+    HAPPY("HAPPY", "-HAPPY") {
+        @Override
+        public boolean performOperation(long n) {
+            if (n <= 0 ) return false;
+            long num = n;
+            Set<Integer> seen = new HashSet<>(); // Store numbers (sum) that have been seen
+
+            while (num != 1) {
+                int sum = 0;
+                while (num > 0) {
+                    int digit = (int) (num % 10); // Extract the last digit
+                    sum += (digit * digit);
+                    num /= 10; // Remove the last digit
+                }
+                if (seen.contains(sum)) return false;
+                seen.add(sum);
+                num = sum;
+            }
+            return true; // If loop terminates with n = 1, it's a happy number
+        }
+    },
+    SAD("SAD", "-SAD") {
+        @Override
+        public boolean performOperation(long n) {
+            return !HAPPY.performOperation(n);
+        }
+    };
+
+    private String positive;
+    private String negative;
+
+    private NumberProperty(String _positive, String _negative) {
+        positive = _positive;
+        negative = _negative;
+    }
+
+    public String getPositive() {
+        return positive;
+    }
+
+    public String getNegative() {
+        return negative;
+    }
+
+    public abstract boolean performOperation(long n);
 }
 
 public class Main {
@@ -11,6 +171,7 @@ public class Main {
     private long startingNum;
     private long consecutiveNum;
     private String[] propertyInputs;
+    private List<String> negativeProperties;
 
     public static void main(String[] args) {
         printWelcome();
@@ -24,6 +185,7 @@ public class Main {
 
     private Main(String[] _stringInput) {
         inputs = _stringInput;
+        negativeProperties = new ArrayList<>();
         if (_stringInput.length > 2) {
             // Initialize propertyInputs with values from _stringInput
             propertyInputs = new String[_stringInput.length - 2];
@@ -76,7 +238,8 @@ public class Main {
         // Property validation
         if (app.inputs.length >= 3) {
             // Check if properties exist in the enum
-            List<String> invalidProperties = checkPropertiesExistInEnum(app.propertyInputs);
+            // --------------------------------------------------
+            List<String> invalidProperties = app.checkPropertiesExistInEnum(app.propertyInputs);
             if (!invalidProperties.isEmpty()) {
                 printIncorrectProperties(invalidProperties);
                 return 0;
@@ -113,18 +276,18 @@ public class Main {
     private void printProperties() {
         long length = (inputs.length >= 2) ? consecutiveNum : 1L;
         if (inputs.length >= 3) {
-            printAdditionalProperties(startingNum, length, propertyInputs);
+            printAdditionalProperties(startingNum, length, propertyInputs, negativeProperties);
         } else {
-            printFirstOrSecondOption(startingNum, length, inputs.length);
+            printFirstOrSecondOption(startingNum, length, inputs.length, negativeProperties);
         }
     }
 
-    private static void printFirstOrSecondOption(long n, long length, int inputsLength) {
+    private static void printFirstOrSecondOption(long n, long length, int inputsLength, List<String> negativeProperties) {
         // This runs when the input has two natural numbers with or without a single property
         for (int i = 0; i < length; i++) {
             // Store booleans into a LinkedHashMap since we need to filter for true values later
             long currentNum = n + i;
-            Map<String, Boolean> boolMap = getBooleanMap(currentNum);
+            Map<String, Boolean> boolMap = createBooleanMap(currentNum);
 
             if (inputsLength == 1) {
                 String strNum = formatLongNumberWithCommas(currentNum);
@@ -162,22 +325,25 @@ public class Main {
         }
     }
 
-    private static void printAdditionalProperties(long n, long length, String[] propertyInputs) {
+    private static void printAdditionalProperties(long n,
+                                                  long length,
+                                                  String[] propertyInputs,
+                                                  List<String> negativeProperties) {
         int i = 0;
         long currentNum = n;
 
         StringBuilder stringBuilder = new StringBuilder();
 
         while (i < length) {
-            Map<String, Boolean> boolMap = getBooleanMap(currentNum);
+            Map<String, Boolean> boolMap = createBooleanMap(currentNum);
 
             // Explicitly check for jumping property, increment by large number
             if (propertyInputs[0].equalsIgnoreCase("jumping") && currentNum == 1234567899L) {
                 currentNum += 866_442_201L;
             }
 
-            boolean trueProperties = allPropertiesAreTrue(boolMap, propertyInputs);
-            if (trueProperties) {
+            boolean negProps = validatePropertyValues(boolMap, propertyInputs, negativeProperties);
+            if (negProps) {
                 String tmpStr = buildNumberStatement(currentNum, boolMap);
                 stringBuilder.append(tmpStr);
                 if (i + 1 != length) {
@@ -190,12 +356,26 @@ public class Main {
         System.out.println(stringBuilder);
     }
 
-    private static boolean allPropertiesAreTrue(Map<String, Boolean> map, String[] propertyInputs) {
-        // Check the boolean Map to see if the property inputs are all true
-        for (String input : propertyInputs) {
-            boolean result = map.get(input.toLowerCase());
-            if (!result) return false;
+    private static boolean validatePropertyValues(Map<String, Boolean> map,
+                                                  String[] propertyInputs,
+                                                  List<String> negativeProperties) {
+        // Check that all negative properties are false
+        for (String str : negativeProperties) {
+            if (map.get(str.toLowerCase())) {
+                // If the negative property is true, return false
+                return false;
+            }
         }
+
+        // Check that all non-negative properties are true
+        for (String str : propertyInputs) {
+            if (str.charAt(0) != '-') {
+                if (!map.get(str.toLowerCase())) {
+                    return false;
+                }
+            }
+        }
+        // If we made it through both checks, then all properties for this number are valid
         return true;
     }
 
@@ -211,6 +391,7 @@ public class Main {
               * the first parameter represents a starting number;
               * the second parameter shows how many consecutive numbers are to be printed;
             - two natural numbers and properties to search for;
+            - a property preceded by minus must not be present in numbers;
             - separate the parameters with one space;
             - enter 0 to exit.
             """);
@@ -241,120 +422,6 @@ public class Main {
                 %n""", str);
     }
 
-    private static boolean isBuzz(long n) {
-        return (n % 7 == 0 || n % 10 == 7);
-    }
-
-    private static boolean isDuck(long n) {
-        String strNum = String.valueOf(n);
-        for (int i = 0; i < strNum.length(); i++) {
-            // NOTE: If we find a number, and it is not at 0th index, then it is a Duck Number!!
-            if (i != 0 && strNum.charAt(i) == '0') {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isPalindromic(long n) {
-        String str = Long.toString(n);
-        for (int i = 0; i < str.length() / 2; i++) {
-            char curr = str.charAt(i);
-            char oppChar = str.charAt(str.length() - 1 - i);
-            if (curr != oppChar) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean isGapful(long n) {
-        if (n < 100) return false;
-        // Convert long into string, then examine the first and last characters of the string
-        String str = Long.toString(n);
-        char firstDigit = str.charAt(0);
-        char lastDigit = str.charAt(str.length() - 1);
-
-        // Concatenate the string and convert it back into a long
-        String concatStr = String.valueOf(firstDigit) + lastDigit;
-        long longNum = Long.parseLong(concatStr);
-        return (n % longNum == 0);
-    }
-
-    private static boolean isEven(long n) {
-        return (n % 2 == 0);
-    }
-
-    private static boolean isSpy(long n) {
-        String numStr = String.valueOf(n);
-        long sum = 0;
-        long product = 1L;
-
-        for (int i = 0; i < numStr.length(); i++) {
-            long digit = Character.getNumericValue(numStr.charAt(i));
-            sum += digit;
-            product *= digit;
-        }
-        return (sum == product);
-    }
-
-    private static boolean isSquare(long n) {
-        double sqrt = Math.sqrt(n);
-        return sqrt == (int) sqrt;
-    }
-
-    private static boolean isSunny(long n) {
-        long nextConsecutive = n + 1L;
-        return isSquare(nextConsecutive);
-    }
-
-    private static boolean isJumpingNumber(long n) {
-        if (n < 10) {
-            // Single-digit numbers are always jumping numbers
-            return true;
-        }
-
-        long prev = n % 10; // Last digit of the number
-        n /= 10; // Remove the last digit
-
-        while (n > 0) {
-            long curr = n % 10; // Current digit
-            long diff = Math.abs(prev - curr); // Absolute difference between previous and current digits
-
-            if (diff != 1) {
-                // If the absolute difference is not 1, it's not a jumping number
-                return false;
-            }
-
-            prev = curr;
-            n /= 10; // Move to the next digit
-        }
-
-        // If all differences are 1, it's a jumping number
-        return true;
-    }
-
-    private static boolean isHappyNumber(long n) {
-        if (n <= 0 ) return false;
-        long num = n;
-        Set<Integer> seen = new HashSet<>(); // Store numbers (sum) that have been seen
-
-        while (num != 1) {
-            int sum = 0;
-            while (num > 0) {
-                int digit = (int) (num % 10); // Extract the last digit
-                sum += (digit * digit);
-                num /= 10; // Remove the last digit
-            }
-            if (seen.contains(sum)) return false;
-            seen.add(sum);
-            num = sum;
-        }
-
-        return true; // If loop terminates with n = 1, it's a happy number
-    }
-
-
     private static String formatLongNumberWithCommas(long n) {
         // Convert the number to a string
         String numberStr = String.valueOf(n);
@@ -375,23 +442,11 @@ public class Main {
         return result.reverse().toString();
     }
 
-    private static Map<String, Boolean> getBooleanMap(long num) {
+    private static Map<String, Boolean> createBooleanMap(long num) {
         Map<String, Boolean> boolMap = new LinkedHashMap<>();
-        boolean numIsEven = isEven(num);
-        boolean numIsHappy = isHappyNumber(num);
-
-        boolMap.put("even", numIsEven);
-        boolMap.put("odd", !numIsEven);
-        boolMap.put("buzz", isBuzz(num));
-        boolMap.put("duck", isDuck(num));
-        boolMap.put("palindromic", isPalindromic(num));
-        boolMap.put("gapful", isGapful(num));
-        boolMap.put("spy", isSpy(num));
-        boolMap.put("square", isSquare(num));
-        boolMap.put("sunny", isSunny(num));
-        boolMap.put("jumping", isJumpingNumber(num));
-        boolMap.put("happy", numIsHappy);
-        boolMap.put("sad", !numIsHappy);
+        for (NumberProperty prop : NumberProperty.values()) {
+            boolMap.put(prop.name().toLowerCase(), prop.performOperation(num));
+        }
         return boolMap;
     }
 
@@ -414,9 +469,9 @@ public class Main {
         List<String> list = Arrays.asList(propertyInputs);
         String[] arr = new String[2];
         // Conflicting properties
-        boolean oddEven = list.contains(Property.EVEN.name()) && list.contains(Property.ODD.name());
-        boolean spyDuck = list.contains(Property.SPY.name()) && list.contains(Property.DUCK.name());
-        boolean sunnySquare = list.contains(Property.SUNNY.name()) && list.contains(Property.SQUARE.name());
+        boolean oddEven = list.contains(NumberProperty.EVEN.name()) && list.contains(NumberProperty.ODD.name());
+        boolean spyDuck = list.contains(NumberProperty.SPY.name()) && list.contains(NumberProperty.DUCK.name());
+        boolean sunnySquare = list.contains(NumberProperty.SUNNY.name()) && list.contains(NumberProperty.SQUARE.name());
         if (oddEven) {
             arr[0] = "ODD";
             arr[1] = "EVEN";
@@ -433,13 +488,33 @@ public class Main {
         return null;
     }
 
-    private static List<String> checkPropertiesExistInEnum(String[] propertyInputs) {
+    private List<String> checkPropertiesExistInEnum(String[] propertyInputs) {
         List<String> list = new LinkedList<>();
         for (String input : propertyInputs) {
+            // Check if the input has a hyphen at the start, if it does, get the remainder of the string and compare it
+            char firstChar = input.charAt(0);
+            String validateInput;
+            boolean negativeProp = false;
+            if (firstChar == '-') {
+                negativeProp = true;
+                validateInput = removeFirstChar(input);
+            } else {
+                validateInput = input;
+            }
+            validateInput.toUpperCase();
+
             try {
-                Property.valueOf(input.toUpperCase());
+                NumberProperty.valueOf(validateInput);
             } catch (IllegalArgumentException e) {
-                list.add(input);
+                list.add(validateInput);
+            }
+
+            // If the input passed validation with a negative property, add it to negativeProperties List
+            if (negativeProp) {
+                for (String str : negativeProperties) {
+                    System.out.println(str);
+                }
+                negativeProperties.add(validateInput);
             }
         }
         return list;
@@ -458,5 +533,12 @@ public class Main {
             }
         }
         return null;
+    }
+
+    public static String removeFirstChar(String input) {
+        if (input == null || input.isEmpty()) {
+            throw new IllegalArgumentException("Input string cannot be null or empty");
+        }
+        return input.substring(1);
     }
 }
