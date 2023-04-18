@@ -256,9 +256,9 @@ public class Main {
             }
 
             // Check for duplicate and mutually exclusive property inputs
-            String[] duplicateProperties = hasDuplicates(app.propertyInputs);
-            if (duplicateProperties != null) {
-                printMutuallyExclusiveProperties(duplicateProperties);
+            String[] mutuallyExclusiveProps = getMutuallyExclusiveProperties(app.propertyInputs);
+            if (mutuallyExclusiveProps != null) {
+                printMutuallyExclusiveProperties(mutuallyExclusiveProps);
                 return 0;
             }
         }
@@ -497,7 +497,7 @@ public class Main {
         return list;
     }
 
-    private static String[] hasDuplicates(String[] propertyInputs) {
+    private static String[] getMutuallyExclusiveProperties(String[] propertyInputs) {
         Set<String> set = new HashSet<>();
         String[] arr = new String[2];
 
