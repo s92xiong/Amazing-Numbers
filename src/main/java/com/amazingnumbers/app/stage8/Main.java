@@ -3,24 +3,24 @@ package com.amazingnumbers.app.stage8;
 import java.util.*;
 
 enum NumberProperty {
-    EVEN("EVEN", "-EVEN") {
+    EVEN("EVEN", "-EVEN", "ODD", "-ODD") {
         @Override
         public boolean performOperation(long n) {
             return (n % 2 == 0);
         }
     },
-    ODD("ODD", "-ODD") {
+    ODD("ODD", "-ODD", "EVEN", "-EVEN") {
         @Override
         public boolean performOperation(long n) {
             return !EVEN.performOperation(n);
         }
     },
-    BUZZ("BUZZ", "-BUZZ") {
+    BUZZ("BUZZ", "-BUZZ", null, null) {
         public boolean performOperation(long n) {
             return (n % 7 == 0 || n % 10 == 7);
         }
     },
-    DUCK("DUCK", "-DUCK") {
+    DUCK("DUCK", "-DUCK", "SPY", "-SPY") {
         public boolean performOperation(long n) {
             String strNum = String.valueOf(n);
             for (int i = 0; i < strNum.length(); i++) {
@@ -32,7 +32,7 @@ enum NumberProperty {
             return false;
         }
     },
-    PALINDROMIC("PALINDROMIC", "-PALINDROMIC") {
+    PALINDROMIC("PALINDROMIC", "-PALINDROMIC", null, null) {
         @Override
         public boolean performOperation(long n) {
             String str = Long.toString(n);
@@ -46,7 +46,7 @@ enum NumberProperty {
             return true;
         }
     },
-    GAPFUL("GAPFUL", "-GAPFUL") {
+    GAPFUL("GAPFUL", "-GAPFUL", null, null) {
         @Override
         public boolean performOperation(long n) {
             if (n < 100) return false;
@@ -61,7 +61,7 @@ enum NumberProperty {
             return (n % longNum == 0);
         }
     },
-    SPY("SPY", "-SPY") {
+    SPY("SPY", "-SPY", "DUCK", "-DUCK") {
         @Override
         public boolean performOperation(long n) {
             String numStr = String.valueOf(n);
@@ -76,21 +76,21 @@ enum NumberProperty {
             return (sum == product);
         }
     },
-    SQUARE("SQUARE", "-SQUARE") {
+    SQUARE("SQUARE", "-SQUARE", "SUNNY" , null) {
         @Override
         public boolean performOperation(long n) {
             double sqrt = Math.sqrt(n);
             return sqrt == (int) sqrt;
         }
     },
-    SUNNY("SUNNY", "-SUNNY") {
+    SUNNY("SUNNY", "-SUNNY", "SQUARE", null) {
         @Override
         public boolean performOperation(long n) {
             long nextConsecutive = n + 1L;
             return SQUARE.performOperation(nextConsecutive);
         }
     },
-    JUMPING("JUMPING", "-JUMPING") {
+    JUMPING("JUMPING", "-JUMPING", null, null) {
         @Override
         public boolean performOperation(long n) {
             if (n < 10) {
@@ -118,7 +118,7 @@ enum NumberProperty {
             return true;
         }
     },
-    HAPPY("HAPPY", "-HAPPY") {
+    HAPPY("HAPPY", "-HAPPY", "SAD", "-SAD") {
         @Override
         public boolean performOperation(long n) {
             if (n <= 0 ) return false;
@@ -139,19 +139,23 @@ enum NumberProperty {
             return true; // If loop terminates with n = 1, it's a happy number
         }
     },
-    SAD("SAD", "-SAD") {
+    SAD("SAD", "-SAD", "HAPPY", "-HAPPY") {
         @Override
         public boolean performOperation(long n) {
             return !HAPPY.performOperation(n);
         }
     };
 
-    private String positive;
-    private String negative;
+    private final String positive;
+    private final String negative;
+    private final String opposite;
+    private final String oppositeNeg;
 
-    private NumberProperty(String _positive, String _negative) {
+    NumberProperty(String _positive, String _negative, String _opposite, String _oppositeNeg) {
         positive = _positive;
         negative = _negative;
+        opposite = _opposite;
+        oppositeNeg = _oppositeNeg;
     }
 
     public String getPositive() {
@@ -162,6 +166,14 @@ enum NumberProperty {
         return negative;
     }
 
+    public String getOpposite() {
+        return opposite;
+    }
+
+    public String getOppositeNeg() {
+        return oppositeNeg;
+    }
+
     public abstract boolean performOperation(long n);
 }
 
@@ -170,7 +182,7 @@ public class Main {
     private long startingNum;
     private long consecutiveNum;
     private String[] propertyInputs;
-    private List<String> negativeProperties;
+    private final List<String> negativeProperties;
 
     public static void main(String[] args) {
         printWelcome();
@@ -243,17 +255,10 @@ public class Main {
                 return 0;
             }
 
-            // Check for duplicate property inputs
+            // Check for duplicate and mutually exclusive property inputs
             String[] duplicateProperties = hasDuplicates(app.propertyInputs);
             if (duplicateProperties != null) {
                 printMutuallyExclusiveProperties(duplicateProperties);
-                return 0;
-            }
-
-            // Check for mutually exclusive property inputs
-            String[] mutuallyExclusiveProps = isMutuallyExclusiveProperties(app.propertyInputs);
-            if (mutuallyExclusiveProps != null) {
-                printMutuallyExclusiveProperties(mutuallyExclusiveProps);
                 return 0;
             }
         }
@@ -276,11 +281,11 @@ public class Main {
         if (inputs.length >= 3) {
             printAdditionalProperties(startingNum, length, propertyInputs, negativeProperties);
         } else {
-            printFirstOrSecondOption(startingNum, length, inputs.length, negativeProperties);
+            printFirstOrSecondOption(startingNum, length, inputs.length);
         }
     }
 
-    private static void printFirstOrSecondOption(long n, long length, int inputsLength, List<String> negativeProperties) {
+    private static void printFirstOrSecondOption(long n, long length, int inputsLength) {
         // This runs when the input has two natural numbers with or without a single property
         for (int i = 0; i < length; i++) {
             // Store booleans into a LinkedHashMap since we need to filter for true values later
@@ -486,9 +491,6 @@ public class Main {
 
             // If the input passed validation with a negative property, add it to negativeProperties List
             if (negativeProp) {
-                for (String str : negativeProperties) {
-                    System.out.println(str);
-                }
                 negativeProperties.add(validateInput);
             }
         }
@@ -496,52 +498,57 @@ public class Main {
     }
 
     private static String[] hasDuplicates(String[] propertyInputs) {
-        // Use a HashSet since it doesn't allow duplicate elements
         Set<String> set = new HashSet<>();
         String[] arr = new String[2];
+
+        // Copy propertyInputs to a new list for quick lookup
+        List<String> stringList = new ArrayList<>();
+        Collections.addAll(stringList, propertyInputs);
+
         boolean isNegativeProp = false;
+
+        // Loop over the inputs
         for (String input : propertyInputs) {
-            String str;
-            if (input.charAt(0) == '-') {
-                str = removeFirstChar(input);
+            String updatedInput;
+
+            // Check for negative property
+            if (input.startsWith("-")) {
+                updatedInput = removeFirstChar(input);
                 isNegativeProp = true;
             } else {
-                str = input;
+                updatedInput = input;
             }
-            // Return the string that has the duplicate
-            if (!set.add(str)) {
-                arr[0] = str;
+
+            // Check for duplicate
+            if (!set.add(updatedInput)) {
+                arr[0] = updatedInput;
                 if (isNegativeProp) {
-                    arr[1] = "-" + str;
+                    arr[1] = "-" + updatedInput;
                     isNegativeProp = false; // Reset to false so we don't continuously add "-"
                 } else {
-                    arr[1] = str;
+                    arr[1] = updatedInput;
                 }
                 return arr;
             }
-        }
-        return null;
-    }
 
-    private static String[] isMutuallyExclusiveProperties(String[] propertyInputs) {
-        List<String> list = Arrays.asList(propertyInputs);
-        String[] arr = new String[2];
-        // Conflicting properties
-        boolean oddEven = list.contains(NumberProperty.EVEN.name()) && list.contains(NumberProperty.ODD.name());
-        boolean spyDuck = list.contains(NumberProperty.SPY.name()) && list.contains(NumberProperty.DUCK.name());
-        boolean sunnySquare = list.contains(NumberProperty.SUNNY.name()) && list.contains(NumberProperty.SQUARE.name());
-        if (oddEven) {
-            arr[0] = "ODD";
-            arr[1] = "EVEN";
-            return arr;
-        } else if (spyDuck) {
-            arr[0] = "SPY";
-            arr[1] = "DUCK";
-            return arr;
-        } else if (sunnySquare) {
-            arr[0] = "SUNNY";
-            arr[1] = "SQUARE";
-            return arr;
+            // Check for mutually exclusive
+            String opposite = NumberProperty.valueOf(updatedInput).getOpposite();
+            String oppositeNeg = NumberProperty.valueOf(updatedInput).getOppositeNeg();
+
+            boolean positiveOppositeInList = stringList.contains(opposite);
+            boolean negativeOppositeInList = stringList.contains(oppositeNeg);
+
+            // Check if the mutually exclusive "positive" opposite is in the list
+            if (positiveOppositeInList) {
+                arr[0] = input; // Assign input since it is not mutated
+                arr[1] = opposite;
+                return arr;
+            } else if (negativeOppositeInList) {
+                // Check if the mutually exclusive "negative" opposite is in the list
+                arr[0] = input;
+                arr[1] = oppositeNeg;
+                return arr;
+            }
         }
         return null;
     }
