@@ -9,7 +9,6 @@ enum NumberProperty {
             return (n % 2 == 0);
         }
     },
-    // Has odd
     ODD("ODD", "-ODD") {
         @Override
         public boolean performOperation(long n) {
@@ -464,29 +463,6 @@ public class Main {
         return tmpStr.substring(0, tmpStr.length() - 1);
     }
 
-    private static String[] isMutuallyExclusiveProperties(String[] propertyInputs) {
-        List<String> list = Arrays.asList(propertyInputs);
-        String[] arr = new String[2];
-        // Conflicting properties
-        boolean oddEven = list.contains(NumberProperty.EVEN.name()) && list.contains(NumberProperty.ODD.name());
-        boolean spyDuck = list.contains(NumberProperty.SPY.name()) && list.contains(NumberProperty.DUCK.name());
-        boolean sunnySquare = list.contains(NumberProperty.SUNNY.name()) && list.contains(NumberProperty.SQUARE.name());
-        if (oddEven) {
-            arr[0] = "ODD";
-            arr[1] = "EVEN";
-            return arr;
-        } else if (spyDuck) {
-            arr[0] = "SPY";
-            arr[1] = "DUCK";
-            return arr;
-        } else if (sunnySquare) {
-            arr[0] = "SUNNY";
-            arr[1] = "SQUARE";
-            return arr;
-        }
-        return null;
-    }
-
     private List<String> checkPropertiesExistInEnum(String[] propertyInputs) {
         List<String> list = new LinkedList<>();
         for (String input : propertyInputs) {
@@ -523,14 +499,49 @@ public class Main {
         // Use a HashSet since it doesn't allow duplicate elements
         Set<String> set = new HashSet<>();
         String[] arr = new String[2];
+        boolean isNegativeProp = false;
         for (String input : propertyInputs) {
-            String str = (input.charAt(0) == '-') ? removeFirstChar(input) : input;
+            String str;
+            if (input.charAt(0) == '-') {
+                str = removeFirstChar(input);
+                isNegativeProp = true;
+            } else {
+                str = input;
+            }
             // Return the string that has the duplicate
             if (!set.add(str)) {
                 arr[0] = str;
-                arr[1] = str;
+                if (isNegativeProp) {
+                    arr[1] = "-" + str;
+                    isNegativeProp = false; // Reset to false so we don't continuously add "-"
+                } else {
+                    arr[1] = str;
+                }
                 return arr;
             }
+        }
+        return null;
+    }
+
+    private static String[] isMutuallyExclusiveProperties(String[] propertyInputs) {
+        List<String> list = Arrays.asList(propertyInputs);
+        String[] arr = new String[2];
+        // Conflicting properties
+        boolean oddEven = list.contains(NumberProperty.EVEN.name()) && list.contains(NumberProperty.ODD.name());
+        boolean spyDuck = list.contains(NumberProperty.SPY.name()) && list.contains(NumberProperty.DUCK.name());
+        boolean sunnySquare = list.contains(NumberProperty.SUNNY.name()) && list.contains(NumberProperty.SQUARE.name());
+        if (oddEven) {
+            arr[0] = "ODD";
+            arr[1] = "EVEN";
+            return arr;
+        } else if (spyDuck) {
+            arr[0] = "SPY";
+            arr[1] = "DUCK";
+            return arr;
+        } else if (sunnySquare) {
+            arr[0] = "SUNNY";
+            arr[1] = "SQUARE";
+            return arr;
         }
         return null;
     }
