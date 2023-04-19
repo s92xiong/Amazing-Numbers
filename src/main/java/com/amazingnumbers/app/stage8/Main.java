@@ -20,7 +20,7 @@ enum NumberProperty {
             return (n % 7 == 0 || n % 10 == 7);
         }
     },
-    DUCK("DUCK", "-DUCK", "SPY", "-SPY") {
+    DUCK("DUCK", "-DUCK", "SPY", null) {
         public boolean performOperation(long n) {
             String strNum = String.valueOf(n);
             for (int i = 0; i < strNum.length(); i++) {
@@ -61,7 +61,7 @@ enum NumberProperty {
             return (n % longNum == 0);
         }
     },
-    SPY("SPY", "-SPY", "DUCK", "-DUCK") {
+    SPY("SPY", "-SPY", "DUCK", null) {
         @Override
         public boolean performOperation(long n) {
             String numStr = String.valueOf(n);
@@ -310,8 +310,8 @@ public class Main {
                                        happy: %b
                                          sad: %b%n""",
                         strNum,
-                        boolMap.get("odd"),
                         boolMap.get("even"),
+                        boolMap.get("odd"),
                         boolMap.get("buzz"),
                         boolMap.get("duck"),
                         boolMap.get("palindromic"),
@@ -542,6 +542,15 @@ public class Main {
             if (positiveOppositeInList) {
                 arr[0] = input; // Assign input since it is not mutated
                 arr[1] = opposite;
+
+                if (arr[0].equals("SPY") && arr[1].equals("-DUCK")
+                        || arr[0].equals("DUCK") && arr[1].equals("-SPY")
+                        || arr[0].equals("SPY") && arr[1].equals("-SPY")
+                        || arr[0].equals("-DUCK") && arr[1].equals("SPY")
+                        || arr[0].equals("-SPY") && arr[1].equals("DUCK")
+                ) {
+                    return null;
+                }
                 return arr;
             } else if (negativeOppositeInList) {
                 // Check if the mutually exclusive "negative" opposite is in the list
